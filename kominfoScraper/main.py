@@ -15,8 +15,8 @@ import openpyxl,os
 class Hoax:
     def __init__(self):
         option = uc.ChromeOptions() 
-        option.add_argument('--disable-gpu')
-        option.add_argument('--headless')
+        # option.add_argument('--disable-gpu')
+        # option.add_argument('--headless')
         self.driver = uc.Chrome(options=option, use_subprocess=True)
         self.driver.set_page_load_timeout(30)
         self.outWorkbook = openpyxl.load_workbook("HoaxData.xlsx")
@@ -26,9 +26,10 @@ class Hoax:
         self.outSheet["C1"] = "Url"
         self.outSheet["D1"] = "Image"
         self.outSheet["E1"] = "Author"
-        self.outSheet["F1"] = "Counter Link"
-        self.outSheet["G1"] = "Date"
-        self.outSheet["H1"] = "Page"
+        self.outSheet["F1"] = "Dekripsi"
+        self.outSheet["G1"] = "Counter Link"
+        self.outSheet["H1"] = "Date"
+        self.outSheet["I1"] = "Page"
 
     def GetCurrentData(self):
         try:
@@ -74,9 +75,11 @@ class Hoax:
             self.driver.get(url)
             Adetail = WebDriverWait(self.driver, 40).until(EC.presence_of_all_elements_located((By.XPATH, "//div[@class='author']")))
             Lcounter = WebDriverWait(self.driver, 40).until(EC.presence_of_all_elements_located((By.XPATH, "//div[@class='youtube-container']//ul//a")))
+            deskirpsi = WebDriverWait(self.driver, 40).until(EC.presence_of_all_elements_located((By.XPATH, "//div[@class='youtube-container']//p")))
             details = [details for details in Adetail]
             lCounters = [lCounter.get_attribute('href') for lCounter in Lcounter]
-            return details, lCounters
+            desc = [desc.text for desc in deskirpsi][1:-1][:-1]
+            return details, lCounters,desc
         except Exception as e:
             print("error while get author data",e)
             return None, None
@@ -101,12 +104,13 @@ class Hoax:
                 print("url: ", url[index])
                 self.outSheet.cell(row=lastRow + 1, column=1, value=title[index])
                 self.outSheet.cell(row=lastRow + 1, column=3, value=page)
-                self.outSheet.cell(row=lastRow + 1, column=8, value=x)
-                details, lCounters = self.GetAuthor(page)
+                self.outSheet.cell(row=lastRow + 1, column=9, value=x)
+                details, lCounters,desc = self.GetAuthor(page)
                 img = self.GetImage()   
                 date = self.GetDate()
                 self.outSheet.cell(row=lastRow + 1, column=4, value=img[0])
-                self.outSheet.cell(row=lastRow + 1, column=7, value=date[0])
+                self.outSheet.cell(row=lastRow + 1, column=8, value=date[0])
+                self.outSheet.cell(row=lastRow + 1, column=6, value=str(desc))
                 if details != None:
                     for detail in details:
                         try:
@@ -119,7 +123,7 @@ class Hoax:
                             print(e)
                             pass
                     for index, linkC in enumerate(lCounters):
-                        self.outSheet.cell(row=lastRow + 1, column=6, value=linkC)
+                        self.outSheet.cell(row=lastRow + 1, column=7, value=linkC)
                         lastRow = lastRow + 1
                     lastRow = lastRow + 1
                 else:
@@ -135,8 +139,8 @@ class Hoax:
 class Satker:
     def __init__(self):
         option = uc.ChromeOptions() 
-        option.add_argument('--disable-gpu')
-        option.add_argument('--headless')
+        # option.add_argument('--disable-gpu')
+        # option.add_argument('--headless')
         self.driver = uc.Chrome(options=option, use_subprocess=True)
         self.driver.set_page_load_timeout(30)
         self.outWorkbook = openpyxl.load_workbook("SatkerData.xlsx")
@@ -192,8 +196,10 @@ class Satker:
         try:
             self.driver.get(url)
             Adetail = WebDriverWait(self.driver, 20).until(EC.presence_of_all_elements_located((By.XPATH, "/html/body/div[8]/div/div[2]/div/div[1]/div[1]/div[2]/div[1]")))
+            deskripsi = WebDriverWait(self.driver, 20).until(EC.presence_of_all_elements_located((By.XPATH, "//div[@class='youtube-container']//p")))
+            desc = [desc.text for desc in deskripsi][0:-1][:-1][:-1]
             details = [details for details in Adetail]
-            return details
+            return details,desc
         except Exception as e:
             print(e)
             print("error getting author data")
@@ -231,10 +237,10 @@ class Satker:
                 self.outSheet.cell(row=lastRow + 1, column=1, value=title[index])
                 self.outSheet.cell(row=lastRow + 1, column=3, value=page)
                 self.outSheet.cell(row=lastRow + 1, column=8, value=x)
-                self.outSheet.cell(row=lastRow + 1, column=6, value=desc[index])
-                details = self.GetAuthor(page)
+                details,desc = self.GetAuthor(page)
                 img = self.GetImage()   
                 date = self.GetDate()
+                self.outSheet.cell(row=lastRow + 1, column=6, value=str(desc))
                 self.outSheet.cell(row=lastRow + 1, column=4, value=img[0])
                 self.outSheet.cell(row=lastRow + 1, column=7, value=date[0])
                 if details != None:
