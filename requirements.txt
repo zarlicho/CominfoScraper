@@ -1,6 +1,0 @@
-lxml==4.9.2
-beautifulsoup4==4.12.3
-openpyxl==3.1.2
-requests==2.31.0
-colorama==0.4.6
-InquirerPy==0.3.4
