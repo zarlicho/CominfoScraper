@@ -31,7 +31,7 @@ class Cominfo:
         else:
             workbook = openpyxl.Workbook()
             sheet = workbook.active
-            sheet.append(['Title', 'Body', 'URL', 'URL counter','Image','Date'])
+            sheet.append(['Title', 'Body', 'URL', 'URL counter','Image','kategori','Date'])
             start_row = 2
         for item in data:
             title = item['title']
@@ -39,8 +39,9 @@ class Cominfo:
             url = item['url']
             url_counters = item['url_counters']
             image = item['image']
+            kategori = item['kategori']
             date = item['date']
-            sheet.append([title, body, url, url_counters[0] if url_counters else '',image,date])
+            sheet.append([title, body, url, url_counters[0] if url_counters else '',image,kategori,date])
             for counter in url_counters[1:]:
                 sheet.append(['', '', '', counter])
 
@@ -70,11 +71,12 @@ class Cominfo:
         if response.status_code == 200:
             data = response.json()
             for item in data['response']['data']:
-                print(item['title'])               
+                print(item['title'])            
                 extraction = self.extractnews(item['body'])
                 img = ""
-                if "Images" in list(item.keys()):
-                    img = item['images'][0]['medium']
+                if "images" in list(item.keys()):
+                    if len(item['images']) != 0:
+                        img = item['images'][0]['medium']
         
                 new_data = [
                     {
@@ -83,6 +85,7 @@ class Cominfo:
                         'url': f"https://www.kominfo.go.id/berita/berita-hoaks/detail/{item['slug']}",
                         'url_counters': [line.strip() for line in extraction['link_counter'].strip().split('\n') if line.strip().startswith(('http://', 'https://'))],
                         'date':item['published_at'],
+                        'kategori':'Berita Hoax',
                         'image':img
                     }
                 ]
@@ -98,8 +101,9 @@ class Cominfo:
                 print(item['title'])     
                 penjelasan = ""
                 img = ""
-                if "Images" in list(item.keys()):
-                    img = item['images'][0]['medium']
+                if "images" in list(item.keys()):
+                    if len(item['images']) != 0:
+                        img = item['images'][0]['medium']
                 for paragraph in [p.get_text(strip=True) for p in BeautifulSoup(item['body'], 'html.parser').find_all('p') if p.get_text(strip=True)]:
                     penjelasan = penjelasan+paragraph + "\n"
                 new_data = [
@@ -109,6 +113,7 @@ class Cominfo:
                         'url': f"https://www.kominfo.go.id/berita/berita-kominfo/detail/{item['slug']}",
                         'url_counters':"",
                         'date':item['published_at'],
+                        'kategori':'Berita Kominfo',
                         'image':img
                     }
                 ]
